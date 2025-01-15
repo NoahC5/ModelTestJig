@@ -1,0 +1,9 @@
+{
+    "workbench.colorCustomizations": {
+        "[Search Lights]": {},
+        "activityBar.background": "#000000",
+        "titleBar.activeBackground": "#4f618c",
+        "titleBar.activeForeground": "#F7FBF7"
+    },
+    "typescript.tsdk": "node_modules\\typescript\\lib"
+}
