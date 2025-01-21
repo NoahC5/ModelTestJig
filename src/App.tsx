@@ -367,7 +367,7 @@ function App() {
         onClick={() => setTrajectory(reachTrajectory)}
       >
         <Box>
-          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+          <Typography sx={{fontSize: '24px', color: 'white'}} >Reach</Typography>
         </Box>
       </ButtonBase>
 
@@ -381,7 +381,7 @@ function App() {
         onClick={() => setTrajectory(sweepTrajectory)}
       >
         <Box>
-          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+          <Typography sx={{fontSize: '24px', color: 'white'}} >Sweep</Typography>
         </Box>
       </ButtonBase>
 
@@ -395,7 +395,8 @@ function App() {
         onClick={() => setTrajectory(cameraTrajectory)}
       >
         <Box>
-          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+          <Typography sx={{fontSize: '24px', color: 'white'}} >Camera</Typography>
+          {/* <SportsEsports sx={{ fontSize: "100px", color: "white" }} /> */}
         </Box>
       </ButtonBase>
     </ThemeProvider>
