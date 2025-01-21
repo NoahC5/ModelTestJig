@@ -2,24 +2,16 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import "./App.css";
 import _Minibot from "./Components/Robot/Minibot";
-import { useGamepads } from 'react-gamepads';
-import {
-  Box,
-  Typography,
-} from "@mui/material";
+import { useGamepads } from "react-gamepads";
+import { Box, Typography } from "@mui/material";
 import Dropzone from "react-dropzone";
 import Papa from "papaparse";
 import useWebSocket from "react-use-websocket";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import "./App.css";
 import ButtonBase from "@mui/material/ButtonBase";
 import {
-  PlayArrowRounded,
-  CloseRounded,
-  PauseRounded,
   SportsEsports,
 } from "@mui/icons-material";
-import Grow from "@mui/material/Grow";
 import { TrajectoryController } from "./Util/TrajectoryController";
 
 const darkTheme = createTheme({
@@ -40,7 +32,6 @@ const ButtonStyle = {
   width: "125px",
   height: "125px",
   borderRadius: "48%",
-
   fontSize: 24,
 };
 
@@ -51,34 +42,80 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const animationTimer = useRef<NodeJS.Timeout | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [gamepads, setGamepads] = useState({})
-  const [gamepadConnected, setGamepadConnected] = useState(false)
+  const [gamepads, setGamepads] = useState({});
+  const [gamepadConnected, setGamepadConnected] = useState(false);
+  const [fbxUrl, setFbxUrl] = useState("robot.fbx");
+  const [sweepTrajectory, setSweepTrajectory] = useState({ data: [] })
+  const [reachTrajectory, setReachTrajectory] = useState({ data: [] })
+  const [cameraTrajectory, setCameraTrajectory] = useState({ data: [] })
 
-  useGamepads(gamepads => setGamepads(gamepads))
-  
-  
+  useGamepads((gamepads) => setGamepads(gamepads));
+
   useEffect(() => {
     window.addEventListener("gamepadconnected", () => {
-      console.log('this is happening!')
-      setGamepadConnected(true)
+      console.log("this is happening!");
+      setGamepadConnected(true);
     });
     window.addEventListener("gamepaddisconnected", () => {
-      console.log('now this')
-      setGamepadConnected(false)
+      console.log("now this");
+      setGamepadConnected(false);
+    });
+    
+    fetch('trajectories/camera.txt').then((res) => {
+      if(!res.ok) {
+        console.error("error loading camera trajectory")
+      } else {
+        return res.text()
+      }
+    }).then((text) => {
+      const parsedData = Papa.parse(text)
+      setCameraTrajectory({data: parsedData.data})
     })
-  },[])
+
+    fetch('trajectories/bothArms_Reach_V6.txt').then((res) => {
+      if(!res.ok) {
+        console.error("error loading camera trajectory")
+      } else {
+        return res.text()
+      }
+    }).then((text) => {
+      const parsedData = Papa.parse(text)
+      setReachTrajectory({data: parsedData.data})
+    })
+
+    fetch('trajectories/bothArms_Sweep_V5.txt').then((res) => {
+      if(!res.ok) {
+        console.error("error loading camera trajectory")
+      } else {
+        return res.text()
+      }
+    }).then((text) => {
+      const parsedData = Papa.parse(text)
+      setSweepTrajectory({data: parsedData.data})
+    })
+
+  }, []);
 
   useEffect(() => {
-    console.log(gamepadConnected)
-  },[gamepadConnected])
+    console.log(gamepadConnected);
+  }, [gamepadConnected]);
 
   const onDrop = useCallback((acceptedFiles: any) => {
     setIsDragging(false);
     const file = acceptedFiles[0];
     const reader = new FileReader();
+
+    console.log(acceptedFiles);
+    if (file.type === "text/plain") {
+      console.log("File is a text file");
+    } else if (file.name.toLowerCase().endsWith(".fbx")) {
+      console.log("File is an FBX file");
+    } else {
+      console.log("Unsupported file type");
+    }
+
     reader.onload = () => {
       const parsedData = Papa.parse(reader.result as string);
-      console.log("Parsed trajectory data:", parsedData.data);
       setTrajectory({ data: parsedData.data });
     };
     reader.readAsText(file);
@@ -182,10 +219,10 @@ function App() {
       >
         <Canvas
           className={isConnected ? "canvas" : "blinking"}
-          style={{ border: "0px solid red", height: "550px", width: "100%" }}
+          style={{ border: "0px solid red", height: "500px", width: "100%" }}
         >
           <Minibot
-            fbxUrl="robot.fbx"
+            fbxUrl={fbxUrl}
             jointPos={jointPos}
             trajectory={trajectory}
           />
@@ -228,7 +265,6 @@ function App() {
         <Box
           sx={{
             position: "absolute",
-            width: "550px",
             border: "0px solid blue",
             top: 30,
             left: 30,
@@ -242,7 +278,7 @@ function App() {
           </Typography>
         </Box>
       )}
-
+      {/* 
       <Grow
         in={trajectory.data.length > 0}
         timeout={1000}
@@ -298,9 +334,9 @@ function App() {
             <CloseRounded sx={{ fontSize: "100px", color: "#ffbfbf" }} />
           </Box>
         </ButtonBase>
-      </Grow>
+      </Grow> */}
 
-      <Grow
+      {/* <Grow
         in={gamepadConnected}
         timeout={1000}
         mountOnEnter
@@ -319,7 +355,49 @@ function App() {
             <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
           </Box>
         </ButtonBase>
-      </Grow>
+      </Grow> */}
+
+      <ButtonBase
+        sx={{
+          ...ButtonStyle,
+          backgroundColor: "#3864ab",
+          top: 200,
+          left: 80,
+        }}
+        onClick={() => setTrajectory(reachTrajectory)}
+      >
+        <Box>
+          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+        </Box>
+      </ButtonBase>
+
+      <ButtonBase
+        sx={{
+          ...ButtonStyle,
+          backgroundColor: "#3864ab",
+          top: 400,
+          left: 80,
+        }}
+        onClick={() => setTrajectory(sweepTrajectory)}
+      >
+        <Box>
+          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+        </Box>
+      </ButtonBase>
+
+      <ButtonBase
+        sx={{
+          ...ButtonStyle,
+          backgroundColor: "#3864ab",
+          top: 600,
+          left: 80,
+        }}
+        onClick={() => setTrajectory(cameraTrajectory)}
+      >
+        <Box>
+          <SportsEsports sx={{ fontSize: "100px", color: "white" }} />
+        </Box>
+      </ButtonBase>
     </ThemeProvider>
   );
 }

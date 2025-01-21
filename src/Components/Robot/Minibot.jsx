@@ -5,7 +5,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 import { useProgress } from '@react-three/drei';
 
-const Minibot = React.memo(({ fbxUrl, jointPos, trajectory, step }) => {
+const Minibot = React.memo(({ fbxUrl, jointPos }) => {
   const fbxRef = useRef();
   const fbx = useLoader(FBXLoader, fbxUrl);
   const { progress } = useProgress()
@@ -13,21 +13,39 @@ const Minibot = React.memo(({ fbxUrl, jointPos, trajectory, step }) => {
     console.log(`Loading FBX model: ${Math.round(progress)}%`);
   }, [progress]);
 
+  // let jointNodes = {
+  //   "Lj1": fbx.getObjectByName("ASM_L654321"),
+  //   "Lj2": fbx.getObjectByName("ASM_L65432"),
+  //   "Lj3": fbx.getObjectByName("ASM_L6543"),
+  //   "Lj4": fbx.getObjectByName("ASM_L654"),
+  //   "Lj5": fbx.getObjectByName("ASM_L65"),
+  //   "Lj61": fbx.getObjectByName("ASM_L61"),
+  //   "Lj62": fbx.getObjectByName("ASM_L62"),
+  //   "Rj1": fbx.getObjectByName("ASM_R654321"),
+  //   "Rj2": fbx.getObjectByName("ASM_R65432"),
+  //   "Rj3": fbx.getObjectByName("ASM_R6543"),
+  //   "Rj4": fbx.getObjectByName("ASM_R654"),
+  //   "Rj5": fbx.getObjectByName("ASM_R65"),
+  //   "Rj61": fbx.getObjectByName("RJ61"),
+  //   "Rj62": fbx.getObjectByName("RJ62"),
+  //   "CAMERA": fbx.getObjectByName("Camera_Tip"),
+  // }
+
   let jointNodes = {
-    "Lj1": fbx.getObjectByName("ASM_L654321"),
-    "Lj2": fbx.getObjectByName("ASM_L65432"),
-    "Lj3": fbx.getObjectByName("ASM_L6543"),
-    "Lj4": fbx.getObjectByName("ASM_L654"),
-    "Lj5": fbx.getObjectByName("ASM_L65"),
-    "Lj61": fbx.getObjectByName("ASM_L61"),
-    "Lj62": fbx.getObjectByName("ASM_L62"),
-    "Rj1": fbx.getObjectByName("ASM_R654321"),
-    "Rj2": fbx.getObjectByName("ASM_R65432"),
-    "Rj3": fbx.getObjectByName("ASM_R6543"),
-    "Rj4": fbx.getObjectByName("ASM_R654"),
-    "Rj5": fbx.getObjectByName("ASM_R65"),
-    "Rj61": fbx.getObjectByName("RJ61"),
-    "Rj62": fbx.getObjectByName("RJ62"),
+    "Lj1": fbx.getObjectByName("Lj1"),
+    "Lj2": fbx.getObjectByName("Lj2"),
+    "Lj3": fbx.getObjectByName("Lj3"),
+    "Lj4": fbx.getObjectByName("Lj4"),
+    "Lj5": fbx.getObjectByName("Lj5"),
+    "Lj61": fbx.getObjectByName("Lj6_a"),
+    "Lj62": fbx.getObjectByName("Lj6_b"),
+    "Rj1": fbx.getObjectByName("Rj1"),
+    "Rj2": fbx.getObjectByName("Rj2"),
+    "Rj3": fbx.getObjectByName("Rj3"),
+    "Rj4": fbx.getObjectByName("Rj4"),
+    "Rj5": fbx.getObjectByName("Rj5"),
+    "Rj61": fbx.getObjectByName("Rj6_a"),
+    "Rj62": fbx.getObjectByName("Rj6_b"),
     "CAMERA": fbx.getObjectByName("Camera_Tip"),
   }
 
@@ -88,7 +106,7 @@ const Minibot = React.memo(({ fbxUrl, jointPos, trajectory, step }) => {
           <group 
             ref={fbxRef} 
             rotation={[0, -2, 0]} 
-            position={[-3, -7, -15]} 
+            position={[-3, -18, -45]} 
             scale={[1, 1, 1]}>
     
             <primitive object={fbx} position={[0, 0, -3]} />
