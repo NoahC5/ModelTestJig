@@ -2,6 +2,7 @@
   "name": "trajectory-player",
   "version": "0.1.0",
   "private": true,
+  
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
@@ -34,7 +35,12 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "package": "electron-packager .",
+    "electron:dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://127.0.0.1:3000 && electron .\"",
+    "electron:package": "npm run build && electron-forge package",
+    "electron:make": "npm run build && electron-forge make"
   },
   "eslintConfig": {
     "extends": [
@@ -53,5 +59,49 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.6.1",
+    "@electron-forge/maker-deb": "^7.6.1",
+    "@electron-forge/maker-rpm": "^7.6.1",
+    "@electron-forge/maker-squirrel": "^7.6.1",
+    "@electron-forge/maker-zip": "^7.6.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^34.0.2",
+    "electron-forge": "^5.2.4",
+    "electron-packager": "^17.1.2",
+    "wait-on": "^8.0.2"
+  },
+  "main": "main.js",
+  "author": {
+    "name": "Noah Costello",
+    "email": "noah@virtualincision.com"
+  },
+  "config": {
+    "forge": {
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "trajectory_player",
+            "authors": "Your Name",
+            "description": "Trajectory Player Application"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": ["darwin"]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
   }
 }

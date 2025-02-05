@@ -3,15 +3,13 @@ import { Canvas } from "@react-three/fiber";
 import "./App.css";
 import _Minibot from "./Components/Robot/Minibot";
 import { useGamepads } from "react-gamepads";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Snackbar, Stack } from "@mui/material";
 import Dropzone from "react-dropzone";
 import Papa from "papaparse";
 import useWebSocket from "react-use-websocket";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import ButtonBase from "@mui/material/ButtonBase";
-import {
-  SportsEsports,
-} from "@mui/icons-material";
+
 import { TrajectoryController } from "./Util/TrajectoryController";
 
 const darkTheme = createTheme({
@@ -21,19 +19,25 @@ const darkTheme = createTheme({
 });
 
 const Minibot = _Minibot as unknown as React.JSXElementConstructor<{
-  fbxUrl: string;
+  fbxFile: Object;
   jointPos: number[][];
   trajectory?: Object;
+  setMessage: any;
 }>;
 
 const ButtonStyle = {
   opacity: 0.7,
-  position: "absolute",
+  // position: "absolute",
   width: "125px",
   height: "125px",
   borderRadius: "48%",
   fontSize: 24,
 };
+
+const isDev = window.require ? false : true;  
+function getAssetPath(relativePath) {
+  return isDev ? relativePath : `app://.${relativePath}`;
+}
 
 function App() {
   const [trajectory, setTrajectory] = useState({ data: [] });
@@ -45,9 +49,12 @@ function App() {
   const [gamepads, setGamepads] = useState({});
   const [gamepadConnected, setGamepadConnected] = useState(false);
   const [fbxUrl, setFbxUrl] = useState("robot.fbx");
+  const [fbxFile, setFbxFile] = useState(null)
   const [sweepTrajectory, setSweepTrajectory] = useState({ data: [] })
   const [reachTrajectory, setReachTrajectory] = useState({ data: [] })
   const [cameraTrajectory, setCameraTrajectory] = useState({ data: [] })
+  const [isOpen, setIsOpen] = useState(false)
+  const [message, setMessage] = useState("")
 
   useGamepads((gamepads) => setGamepads(gamepads));
 
@@ -61,9 +68,10 @@ function App() {
       setGamepadConnected(false);
     });
     
-    fetch('trajectories/camera.txt').then((res) => {
+    fetch(getAssetPath('trajectories/camera.txt')).then((res) => {
       if(!res.ok) {
         console.error("error loading camera trajectory")
+        setMessage("Error loading trajectory")
       } else {
         return res.text()
       }
@@ -72,9 +80,10 @@ function App() {
       setCameraTrajectory({data: parsedData.data})
     })
 
-    fetch('trajectories/bothArms_Reach_V6.txt').then((res) => {
+    fetch(getAssetPath('trajectories/bothArms_Reach_V6.txt')).then((res) => {
       if(!res.ok) {
         console.error("error loading camera trajectory")
+        setMessage("Error loading trajectory")
       } else {
         return res.text()
       }
@@ -83,9 +92,10 @@ function App() {
       setReachTrajectory({data: parsedData.data})
     })
 
-    fetch('trajectories/bothArms_Sweep_V5.txt').then((res) => {
+    fetch(getAssetPath('trajectories/bothArms_Sweep_V5.txt')).then((res) => {
       if(!res.ok) {
         console.error("error loading camera trajectory")
+        setMessage("Error loading trajectory")
       } else {
         return res.text()
       }
@@ -103,22 +113,32 @@ function App() {
   const onDrop = useCallback((acceptedFiles: any) => {
     setIsDragging(false);
     const file = acceptedFiles[0];
+    console.log(acceptedFiles)
     const reader = new FileReader();
 
     console.log(acceptedFiles);
     if (file.type === "text/plain") {
+      
       console.log("File is a text file");
+  
+      reader.onload = () => {
+        const parsedData = Papa.parse(reader.result as string);
+        setTrajectory({ data: parsedData.data });
+      };
+      reader.readAsText(file);
+
     } else if (file.name.toLowerCase().endsWith(".fbx")) {
+
       console.log("File is an FBX file");
+      reader.onload = () => {
+        setFbxFile(reader.result)
+      };
+      reader.readAsArrayBuffer(file)
+
     } else {
       console.log("Unsupported file type");
     }
-
-    reader.onload = () => {
-      const parsedData = Papa.parse(reader.result as string);
-      setTrajectory({ data: parsedData.data });
-    };
-    reader.readAsText(file);
+    
   }, []);
 
   const { sendJsonMessage } = useWebSocket("ws://127.0.0.1:8081", {
@@ -142,7 +162,6 @@ function App() {
         jsonrpc: "2.0",
       });
     },
-    onError: (e) => console.log("Drawer ws error:", e),
     onClose: () => setIsConnected(false),
   });
 
@@ -173,6 +192,13 @@ function App() {
       };
     }
   }, [trajectory]);
+
+  useEffect(() => {
+    if(message)
+    {
+      setIsOpen(true)
+    }
+  }, [message])
 
   if (controller.getStatus(trajectory).isPlaying) {
     console.log("playing");
@@ -217,16 +243,29 @@ function App() {
           overflow: "hidden",
         }}
       >
-        <Canvas
-          className={isConnected ? "canvas" : "blinking"}
-          style={{ border: "0px solid red", height: "500px", width: "100%" }}
-        >
-          <Minibot
-            fbxUrl={fbxUrl}
-            jointPos={jointPos}
-            trajectory={trajectory}
-          />
-        </Canvas>
+      <Snackbar message={message} anchorOrigin={{vertical: 'bottom', horizontal: 'center'}} autoHideDuration={5000} onClose={() => setIsOpen(false)} open={isOpen}/>
+        {
+          fbxFile ?
+          <Canvas
+            // className={isConnected ? "canvas" : "blinking"}
+            style={{ border: "0px solid red", height: "500px", width: "100%" }}
+          >
+            <Minibot
+              setMessage={setMessage}
+              // fbxUrl={fbxUrl}
+              fbxFile={fbxFile}
+              jointPos={jointPos}
+              trajectory={trajectory}
+            />
+          </Canvas>
+          :
+          <Typography 
+            color={'white'} 
+            fontFamily={'Poppins'}>
+              Put a robot model in me
+          </Typography>
+        }
+        
         <Dropzone
           onDrop={onDrop}
           onDragEnter={() => setIsDragging(true)}
@@ -260,7 +299,7 @@ function App() {
         </Dropzone>
         {/* <Button onClick={() => sendTrajectory()}>test</Button> */}
       </Box>
-
+{/* 
       {!isConnected && (
         <Box
           sx={{
@@ -277,7 +316,7 @@ function App() {
             Connecting to API
           </Typography>
         </Box>
-      )}
+      )} */}
       {/* 
       <Grow
         in={trajectory.data.length > 0}
@@ -356,49 +395,58 @@ function App() {
           </Box>
         </ButtonBase>
       </Grow> */}
-
-      <ButtonBase
+      <Stack 
         sx={{
-          ...ButtonStyle,
-          backgroundColor: "#3864ab",
-          top: 200,
-          left: 80,
+          position: 'absolute',
+          top: '50%',
+          // Change left position to be just outside the dropzone
+          left: 'calc(50% - 550px)', // 425px = dropzone width (650px)/2 + some spacing (100px)
+          transform: 'translateY(-50%)',
         }}
-        onClick={() => setTrajectory(reachTrajectory)}
-      >
-        <Box>
-          <Typography sx={{fontSize: '24px', color: 'white'}} >Reach</Typography>
-        </Box>
-      </ButtonBase>
+        spacing={10}>
+        <ButtonBase
+          sx={{
+            ...ButtonStyle,
+            backgroundColor: "#3864ab",
+            // top: 200,
+            left: 60,
+          }}
+          onClick={() => setTrajectory(reachTrajectory)}
+        >
+          <Box>
+            <Typography sx={{fontSize: '24px', color: '#edf3fc'}}>Reach</Typography>
+          </Box>
+        </ButtonBase>
 
-      <ButtonBase
-        sx={{
-          ...ButtonStyle,
-          backgroundColor: "#3864ab",
-          top: 400,
-          left: 80,
-        }}
-        onClick={() => setTrajectory(sweepTrajectory)}
-      >
-        <Box>
-          <Typography sx={{fontSize: '24px', color: 'white'}} >Sweep</Typography>
-        </Box>
-      </ButtonBase>
+        <ButtonBase
+          sx={{
+            ...ButtonStyle,
+            backgroundColor: "#3864ab",
+            // top: 400,
+            // left: 80,
+          }}
+          onClick={() => setTrajectory(sweepTrajectory)}
+        >
+          <Box>
+            <Typography sx={{fontSize: '24px', color: '#edf3fc'}}>Sweep</Typography>
+          </Box>
+        </ButtonBase>
 
-      <ButtonBase
-        sx={{
-          ...ButtonStyle,
-          backgroundColor: "#3864ab",
-          top: 600,
-          left: 80,
-        }}
-        onClick={() => setTrajectory(cameraTrajectory)}
-      >
-        <Box>
-          <Typography sx={{fontSize: '24px', color: 'white'}} >Camera</Typography>
-          {/* <SportsEsports sx={{ fontSize: "100px", color: "white" }} /> */}
-        </Box>
-      </ButtonBase>
+        <ButtonBase
+          sx={{
+            ...ButtonStyle,
+            backgroundColor: "#3864ab",
+            // top: 600,
+            left: 60,
+          }}
+          onClick={() => setTrajectory(cameraTrajectory)}
+        >
+          <Box>
+            <Typography sx={{fontSize: '24px', color: '#edf3fc'}}>Camera</Typography>
+            {/* <SportsEsports sx={{ fontSize: "100px", color: "white" }} /> */}
+          </Box>
+        </ButtonBase>
+      </Stack>
     </ThemeProvider>
   );
 }

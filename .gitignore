@@ -10,6 +10,7 @@
 
 # production
 /build
+/trajectory-player-win32-x64
 
 # misc
 .DS_Store
@@ -18,6 +19,10 @@
 .env.test.local
 .env.production.local
 
+out/
+.webpack/
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+trajectory-player-win32-x64.zip
